@@ -6,7 +6,7 @@
 # versions.json
 # package.json
 
-TAG="1.1.1"
+TAG="1.1.2"
 FILES=("manifest.json" "main.js" "styles.css")
 NOTES="Fix fatal error."
 
