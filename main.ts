@@ -31,6 +31,41 @@ export default class AutoScrollPlugin extends Plugin {
 		window.clearInterval(this.intervalId);
 		this.active = false;
 	}
+
+	toggleScrolling() {
+		if (this.active) {
+			this.stopScroll();
+		} else {
+			this.ribbonIconEl?.classList.add(ribbonActiveClassName);
+			new Notice("Starting Auto Scroller");
+			this.active = true;
+			this.intervalId = this.registerInterval(
+				window.setInterval(() => this.performScroll(), 10)
+			);
+		}
+	}
+
+	async increaseSpeed() {
+		if (this.settings.speed >= 2) {
+			this.settings.speed = 0.1;
+		} else {
+			// to mitigate precision issues (e.g. avoid .1 + .1 = .20000000001)
+			this.settings.speed = Math.round(this.settings.speed * 10 + 1) / 10;
+		}
+		await this.saveSettings();
+		new Notice("Setting speed to " + this.settings.speed);
+	}
+
+	async decreaseSpeed() {
+		if (this.settings.speed <= 0.1) {
+			this.settings.speed = 2;
+		} else {
+			// to mitigate precision issues (e.g. avoid .1 + .1 = .20000000001)
+			this.settings.speed = Math.round(this.settings.speed * 10 - 1) / 10;
+		}
+		await this.saveSettings();
+		new Notice("Setting speed to " + this.settings.speed);
+	}
 	private performScroll() {
 		this.pixelfractionCounter += this.settings.speed;
 		if (this.pixelfractionCounter < 1) return;
@@ -99,48 +134,17 @@ export default class AutoScrollPlugin extends Plugin {
 		this.addCommand({
 			id: "toggle-scrolling",
 			name: "Autoscroller: toggle scrolling",
-			callback: () => {
-				if (this.active) {
-					this.stopScroll();
-				} else {
-					this.ribbonIconEl?.classList.add(ribbonActiveClassName);
-					new Notice("Starting Auto Scroller");
-					this.active = true;
-					this.intervalId = this.registerInterval(
-						window.setInterval(() => this.performScroll(), 10)
-					);
-				}
-			},
+			callback: this.toggleScrolling.bind(this),
 		});
 		this.addCommand({
 			id: "increase-speed",
 			name: "Autoscroller: increase speed",
-			callback: async () => {
-				if (this.settings.speed >= 2) {
-					this.settings.speed = 0.1;
-				} else {
-					// to mitigate precision issues (e.g. avoid .1 + .1 = .20000000001)
-					this.settings.speed =
-						Math.round(this.settings.speed * 10 + 1) / 10;
-				}
-				await this.saveSettings();
-				new Notice("Setting speed to " + this.settings.speed);
-			},
+			callback: this.increaseSpeed.bind(this),
 		});
 		this.addCommand({
 			id: "decrease-speed",
 			name: "Autoscroller: decrease speed",
-			callback: async () => {
-				if (this.settings.speed <= 0.1) {
-					this.settings.speed = 2;
-				} else {
-					// to mitigate precision issues (e.g. avoid .1 + .1 = .20000000001)
-					this.settings.speed =
-						Math.round(this.settings.speed * 10 - 1) / 10;
-				}
-				await this.saveSettings();
-				new Notice("Setting speed to " + this.settings.speed);
-			},
+			callback: this.decreaseSpeed.bind(this),
 		});
 
 		if (this.settings.showRibbonIcon) {
@@ -150,16 +154,10 @@ export default class AutoScrollPlugin extends Plugin {
 				(e) => {
 					if (e.button === 0) {
 						// left mouse button
-						// @ts-ignore
-						this.app.commands.executeCommandById(
-							`${pluginId}:toggle-scrolling`
-						);
+						this.toggleScrolling();
 					} else {
 						// right mouse button
-						// @ts-ignore
-						this.app.commands.executeCommandById(
-							`${pluginId}:increase-speed`
-						);
+						this.increaseSpeed();
 					}
 				}
 			);
@@ -216,16 +214,10 @@ class AutoScrollSettingTab extends PluginSettingTab {
 									(e) => {
 										if (e.button === 0) {
 											// left mouse button
-											// @ts-ignore
-											this.app.commands.executeCommandById(
-												`${pluginId}:toggle-scrolling`
-											);
+											this.plugin.toggleScrolling();
 										} else {
 											// right mouse button
-											// @ts-ignore
-											this.app.commands.executeCommandById(
-												`${pluginId}:increase-speed`
-											);
+											this.plugin.increaseSpeed();
 										}
 									}
 								);
