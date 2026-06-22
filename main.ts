@@ -7,19 +7,19 @@ import {
 	MarkdownView,
 } from "obsidian";
 
-interface DriftScrollSettings {
+interface AutoscrollerSettings {
 	speed: number;
 	showRibbonIcon: boolean;
 }
 
-const DEFAULT_SETTINGS: DriftScrollSettings = {
+const DEFAULT_SETTINGS: AutoscrollerSettings = {
 	speed: 0.2,
 	showRibbonIcon: true,
 };
-const ribbonActiveClassName = "drift-scroll-ribbon-active";
+const ribbonActiveClassName = "autoscroller-ribbon-active";
 
-export default class DriftScrollPlugin extends Plugin {
-	settings!: DriftScrollSettings;
+export default class AutoscrollerPlugin extends Plugin {
+	settings!: AutoscrollerSettings;
 	active = false;
 	intervalId?: number;
 	pixelfractionCounter = 0;
@@ -27,7 +27,7 @@ export default class DriftScrollPlugin extends Plugin {
 
 	private stopScroll() {
 		this.ribbonIconEl?.classList.remove(ribbonActiveClassName);
-		new Notice("Stopping drift scroll");
+		new Notice("Stopping autoscroller");
 		if (this.intervalId !== undefined) {
 			window.clearInterval(this.intervalId);
 			this.intervalId = undefined;
@@ -40,7 +40,7 @@ export default class DriftScrollPlugin extends Plugin {
 			this.stopScroll();
 		} else {
 			this.ribbonIconEl?.classList.add(ribbonActiveClassName);
-			new Notice("Starting drift scroll");
+			new Notice("Starting autoscroller");
 			this.active = true;
 			this.intervalId = this.registerInterval(
 				window.setInterval(() => this.performScroll(), 10)
@@ -160,7 +160,7 @@ export default class DriftScrollPlugin extends Plugin {
 		if (this.settings.showRibbonIcon) {
 			this.ribbonIconEl = this.addRibbonIcon(
 				"double-down-arrow-glyph",
-				`Drift scroll (speed ${this.settings.speed})`,
+				`Autoscroller (speed ${this.settings.speed})`,
 				(e) => {
 					if (e.button === 0) {
 						this.toggleScrolling();
@@ -171,7 +171,7 @@ export default class DriftScrollPlugin extends Plugin {
 			);
 		}
 
-		this.addSettingTab(new DriftScrollSettingTab(this.app, this));
+		this.addSettingTab(new AutoscrollerSettingTab(this.app, this));
 	}
 
 	onunload() {
@@ -184,7 +184,7 @@ export default class DriftScrollPlugin extends Plugin {
 		const saved: unknown = await this.loadData();
 		const data =
 			typeof saved === "object" && saved !== null
-				? (saved as Partial<DriftScrollSettings>)
+				? (saved as Partial<AutoscrollerSettings>)
 				: {};
 		this.settings = { ...DEFAULT_SETTINGS, ...data };
 	}
@@ -194,10 +194,10 @@ export default class DriftScrollPlugin extends Plugin {
 	}
 }
 
-class DriftScrollSettingTab extends PluginSettingTab {
-	plugin: DriftScrollPlugin;
+class AutoscrollerSettingTab extends PluginSettingTab {
+	plugin: AutoscrollerPlugin;
 
-	constructor(app: App, plugin: DriftScrollPlugin) {
+	constructor(app: App, plugin: AutoscrollerPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -219,7 +219,7 @@ class DriftScrollSettingTab extends PluginSettingTab {
 							this.plugin.ribbonIconEl =
 								this.plugin.addRibbonIcon(
 									"double-down-arrow-glyph",
-									`Drift scroll (speed ${this.plugin.settings.speed})`,
+									`Autoscroller (speed ${this.plugin.settings.speed})`,
 									(e) => {
 										if (e.button === 0) {
 											this.plugin.toggleScrolling();
