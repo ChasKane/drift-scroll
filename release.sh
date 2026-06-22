@@ -17,7 +17,7 @@ set_gh_repo_default() {
 	if [[ -z "$repo" || "$repo" == "$origin_url" ]]; then
 		echo "Could not parse GitHub repo from origin: $origin_url"
 		return 1
-	}
+	fi
 	gh repo set-default "$repo"
 }
 
